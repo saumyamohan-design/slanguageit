@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Slanguage</title>
+<meta name="description" content="Translate plain English into ridiculous modern slang, or decode confusing slang back into plain English." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF4EC;
+    --card: #FFFFFF;
+    --ink: #1F1B1D;
+    --ink-soft: #57514F;
+    --coral: #E24B4A;
+    --coral-dark: #A32D2D;
+    --pink-bg: #FBEAF0;
+    --pink-ink: #72243E;
+    --border: #1F1B1D;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 64px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .intensity-toggle {
+    display: flex;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .intensity-toggle button {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    cursor: pointer;
+    color: var(--ink-soft);
+  }
+
+  .intensity-toggle button.active {
+    background: var(--coral);
+    color: #fff;
+  }
+
+  .direction-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .direction-row .dim { color: var(--ink-soft); font-weight: 500; }
+  .direction-row .lit { color: var(--coral-dark); }
+
+  .swap-btn {
+    border: 2px solid var(--border);
+    background: #fff;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .swap-btn:active { transform: scale(0.94); }
+
+  textarea {
+    width: 100%;
+    height: 76px;
+    resize: none;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 15px;
+    margin-bottom: 14px;
+    background: #fff;
+    color: var(--ink);
+  }
+
+  textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--coral);
+  }
+
+  .go-btn {
+    width: 100%;
+    border: none;
+    background: var(--coral);
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 14px;
+  }
+
+  .go-btn:disabled { opacity: 0.6; cursor: default; }
+  .go-btn:not(:disabled):active { transform: scale(0.99); }
+
+  .output {
+    display: none;
+  }
+
+  .output.visible { display: block; }
+
+  .result-card {
+    background: var(--pink-bg);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .comment {
+    background: var(--pink-bg);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--pink-ink);
+    margin-bottom: 12px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .actions button {
+    flex: 1;
+    border: 2px solid var(--border);
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .error {
+    display: none;
+    font-size: 13px;
+    color: var(--coral-dark);
+    margin: -6px 0 14px;
+  }
+
+  .error.visible { display: block; }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 18px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <div class="header-row">
+      <h1>Slanguage</h1>
+      <div class="intensity-toggle" id="intensityToggle">
+        <button type="button" data-value="mild" class="active">Mild</button>
+        <button type="button" data-value="unhinged">Unhinged</button>
+      </div>
+    </div>
+
+    <div class="direction-row">
+      <span id="labelFrom" class="lit">Plain english</span>
+      <button class="swap-btn" id="swapBtn" type="button" aria-label="Swap direction">&#8646;</button>
+      <span id="labelTo" class="dim">Slang</span>
+    </div>
+
+    <textarea id="inputText" placeholder="say something rad, bro"></textarea>
+    <div class="error" id="errorMsg"></div>
+
+    <button class="go-btn" id="goBtn" type="button">translate</button>
+
+    <div class="output" id="output">
+      <div class="result-card" id="resultText"></div>
+      <div class="comment" id="commentText"></div>
+      <div class="actions">
+        <button type="button" id="copyBtn">Copy</button>
+        <button type="button" id="shareBtn">Share</button>
+      </div>
+    </div>
+  </div>
+  <footer>Translations are AI-generated and can be wrong or weird on purpose.</footer>
+</div>
+
+<script>
+  const state = { direction: 'toSlang', intensity: 'mild' };
+
+  const intensityToggle = document.getElementById('intensityToggle');
+  const labelFrom = document.getElementById('labelFrom');
+  const labelTo = document.getElementById('labelTo');
+  const swapBtn = document.getElementById('swapBtn');
+  const inputText = document.getElementById('inputText');
+  const goBtn = document.getElementById('goBtn');
+  const output = document.getElementById('output');
+  const resultText = document.getElementById('resultText');
+  const commentText = document.getElementById('commentText');
+  const errorMsg = document.getElementById('errorMsg');
+  const copyBtn = document.getElementById('copyBtn');
+  const shareBtn = document.getElementById('shareBtn');
+
+  function renderDirection() {
+    const toSlang = state.direction === 'toSlang';
+    labelFrom.textContent = toSlang ? 'Plain english' : 'Slang';
+    labelTo.textContent = toSlang ? 'Slang' : 'Plain english';
+    labelFrom.className = toSlang ? 'lit' : 'dim';
+    labelTo.className = toSlang ? 'dim' : 'lit';
+    intensityToggle.style.display = toSlang ? 'flex' : 'none';
+    inputText.placeholder = toSlang ? 'say something rad, bro' : 'paste the confusing text here';
+    goBtn.textContent = toSlang ? 'translate' : 'decode';
+    output.classList.remove('visible');
+  }
+
+  swapBtn.addEventListener('click', () => {
+    state.direction = state.direction === 'toSlang' ? 'toPlain' : 'toSlang';
+    renderDirection();
+  });
+
+  intensityToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    state.intensity = btn.dataset.value;
+    [...intensityToggle.querySelectorAll('button')].forEach((b) => b.classList.toggle('active', b === btn));
+  });
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.add('visible');
+  }
+
+  function clearError() {
+    errorMsg.textContent = '';
+    errorMsg.classList.remove('visible');
+  }
+
+  async function handleGo() {
+    const text = inputText.value.trim();
+    clearError();
+
+    if (!text) {
+      showError('Type something first.');
+      return;
+    }
+
+    goBtn.disabled = true;
+    goBtn.textContent = 'working...';
+    output.classList.remove('visible');
+
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          direction: state.direction === 'toSlang' ? 'toSlang' : 'toPlain',
+          intensity: state.intensity,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error || 'Something went wrong. Try again.');
+        return;
+      }
+
+      resultText.textContent = '"' + data.translation + '"';
+      commentText.textContent = data.comment || '';
+      commentText.style.display = data.comment ? 'block' : 'none';
+      output.classList.add('visible');
+    } catch (err) {
+      showError('Could not reach the translator. Check your connection.');
+    } finally {
+      goBtn.disabled = false;
+      goBtn.textContent = state.direction === 'toSlang' ? 'translate' : 'decode';
+    }
+  }
+
+  goBtn.addEventListener('click', handleGo);
+  inputText.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleGo();
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(resultText.textContent);
+      copyBtn.textContent = 'Copied';
+      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+    } catch (err) {
+      showError('Could not copy. Select the text manually.');
+    }
+  });
+
+  shareBtn.addEventListener('click', async () => {
+    const shareText = resultText.textContent + '\n\ntranslated on Slanguage';
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: shareText });
+      } catch (err) {
+        /* user cancelled, no-op */
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        shareBtn.textContent = 'Copied to share';
+        setTimeout(() => { shareBtn.textContent = 'Share'; }, 1500);
+      } catch (err) {
+        showError('Could not copy for sharing.');
+      }
+    }
+  });
+
+  renderDirection();
+</script>
+</body>
+</html>
